@@ -26,6 +26,9 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Use the http.NewServeMux() function to initialize a new servemux, then
 	// register the home function as the handler for the "/" URL pattern.
+
+	// Not not using DefaultServeMux due to it being a globally accessible by
+	// all packages.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 	mux.HandleFunc("/snippet/view", snippetView)
