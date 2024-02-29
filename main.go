@@ -16,7 +16,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display specific snippet..."))
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"author":"Alex","snippet":"Some snippet..."}`))
 }
 
 func snippetCreate(w http.ResponseWriter, r *http.Request) {
