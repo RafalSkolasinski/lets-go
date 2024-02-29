@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -16,8 +18,14 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		http.Error(w, "Id Must Be A Valid Integer", http.StatusBadRequest)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"author":"Alex","snippet":"Some snippet..."}`))
+	fmt.Fprintf(w, `{"author":"Alex","snippet":"Some snippet...", "id":%d}`, id)
 }
 
 func snippetCreate(w http.ResponseWriter, r *http.Request) {
