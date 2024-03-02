@@ -8,17 +8,24 @@ import (
 	"github.com/spf13/pflag"
 )
 
+type config struct {
+	addr string
+}
+
+var cfg config
+
 func main() {
 	// Define a new command-line flag with the name 'addr', a default value of ":4000"
 	// and some short help text explaining what the flag controls. The value of the
 	// flag will be stored in the addr variable at runtime.
-	addr := pflag.StringP("addr", "", ":4000", "HTTP network address")
+	pflag.StringVarP(&cfg.addr, "addr", "", ":4000", "HTTP network address")
 
 	// Importantly, we use the flag.Parse() function to parse the command-line flag.
 	// This reads in the command-line flag value and assigns it to the addr
 	// variable. You need to call this *before* you use the addr variable
 	// otherwise it will always contain the default value of ":4000". If any errors are
 	// encountered during parsing the application will be terminated.
+
 	pflag.Parse()
 
 	mux := http.NewServeMux()
@@ -34,8 +41,8 @@ func main() {
 	// value, not the value itself. So we need to dereference the pointer (i.e.
 	// prefix it with the * symbol) before using it. Note that we're using the
 	// log.Printf() function to interpolate the address with the log message.
-	log.Printf("Starting server on %s\n", *addr)
-	err := http.ListenAndServe(*addr, mux)
+	log.Printf("Starting server on %s\n", cfg.addr)
+	err := http.ListenAndServe(cfg.addr, mux)
 	log.Fatal(err)
 }
 
