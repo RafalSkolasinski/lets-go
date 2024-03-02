@@ -8,14 +8,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type config struct {
-	addr string
-}
-
-var cfg config
-
 func main() {
-	pflag.StringVarP(&cfg.addr, "addr", "", ":4000", "HTTP network address")
+	addr := pflag.StringP("addr", "", ":4000", "HTTP network address")
 
 	pflag.Parse()
 
@@ -45,12 +39,12 @@ func main() {
 	// the ErrorLog field so that the server now uses the custom errorLog logger in
 	// the event of any problems.
 	srv := &http.Server{
-		Addr:     cfg.addr,
+		Addr:     *addr,
 		ErrorLog: errorLog,
 		Handler:  mux,
 	}
 
-	infoLog.Printf("Starting server on %s\n", cfg.addr)
+	infoLog.Printf("Starting server on %s\n", *addr)
 	// Call the ListenAndServe() method on our new http.Server struct.
 	err := srv.ListenAndServe()
 	errorLog.Fatal(err)
