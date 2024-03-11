@@ -9,12 +9,14 @@ import (
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
+	errorLog          *log.Logger
+	infoLog           *log.Logger
+	allowFileBrowsing *bool
 }
 
 func main() {
 	addr := pflag.StringP("addr", "", ":4000", "HTTP network address")
+	allowFileBrowsing := pflag.BoolP("allow-file-browsing", "", false, "Disable file browsing in File Server")
 
 	pflag.Parse()
 
@@ -24,6 +26,8 @@ func main() {
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
+
+		allowFileBrowsing: allowFileBrowsing,
 	}
 
 	srv := &http.Server{
@@ -37,25 +41,4 @@ func main() {
 	infoLog.Printf("Starting server on %s\n", *addr)
 	err := srv.ListenAndServe()
 	errorLog.Fatal(err)
-}
-
-type neuteredFileSystem struct {
-	httpDir http.FileSystem
-}
-
-func (fs neuteredFileSystem) Open(name string) (http.File, error) {
-	f, err := fs.httpDir.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	stat, err := f.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	if stat.IsDir() {
-		return nil, os.ErrNotExist
-	}
-
-	return f, nil
 }
