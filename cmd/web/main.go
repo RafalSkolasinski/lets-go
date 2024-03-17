@@ -8,6 +8,8 @@ import (
 
 	"github.com/spf13/pflag"
 
+	"letsgo.skolasinski.me/internal/models"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -17,6 +19,7 @@ type application struct {
 	errorLog          *log.Logger
 	infoLog           *log.Logger
 	allowFileBrowsing *bool
+	snippets          *models.SnippetModel
 }
 
 func main() {
@@ -41,9 +44,11 @@ func main() {
 	// before the main() function exits.
 	defer db.Close()
 
+	// Initialize a models.SnippetModel instance and add it to the application dependencies
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
+		snippets: &models.SnippetModel{DB: db},
 
 		allowFileBrowsing: allowFileBrowsing,
 	}
