@@ -54,18 +54,19 @@ func (m *SnippetModel) Get(id int) (*Snippet, error) {
 	stmt := `SELECT id, title, content, created, expires FROM snippets
 	WHERE expires > UTC_TIMESTAMP() AND id = ?`
 
-	// Use the QueryRow() method of the connection pool to execute the statement.
-	// This returns a pointer to sql.Row object which holds the results.
-	row := m.DB.QueryRow(stmt, id)
-
 	// Initialize Pointer to a new zeroed Snippet struct
 	s := &Snippet{}
+
+	// Use the QueryRow() method of the connection pool to execute the statement.
+	// This returns a pointer to sql.Row object which holds the results.
 
 	// Use row.Scan() to copy the values from each field in sql.Row to the corresponding
 	// field in the Snippet struct. Notice that the arguments to row.Scan are *pointers*
 	// to the place you want to copy the data into, and the number of arguments must be
 	// exactly the same as the number of columns returned by the SQL statement.
-	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+
+	// Because errors are deferred until .Scan() we can combine this
+	err := m.DB.QueryRow(stmt, id).Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
 	if err != nil {
 		// If the query returns no rows, then row.Scan() will return a
 		// sql.ErrNoRows error. We use the errors.Is() function check for that
