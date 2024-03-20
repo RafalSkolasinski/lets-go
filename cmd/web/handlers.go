@@ -19,6 +19,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
 
 	for _, s := range snippets {
@@ -79,9 +80,6 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-
-	// Write the snippet data as a plain-text HTTP response body
-	fmt.Fprintf(w, "%+v\n", snippet)
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
