@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 
 	"github.com/spf13/pflag"
 
@@ -15,11 +16,13 @@ import (
 
 const DEFAULT_DSN = "snippetbox:snippetbox@tcp(localhost:3306)/snippetbox?parseTime=true"
 
+// Add a templateCache field to the application struct.
 type application struct {
 	errorLog          *log.Logger
 	infoLog           *log.Logger
 	allowFileBrowsing *bool
 	snippets          *models.SnippetModel
+	templateCache     map[string]*template.Template
 }
 
 func main() {
@@ -44,11 +47,19 @@ func main() {
 	// before the main() function exits.
 	defer db.Close()
 
+	// Initialize a new template cache...
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	// Initialize a models.SnippetModel instance and add it to the application dependencies
+	// Add templateCache to the dependencies
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		snippets: &models.SnippetModel{DB: db},
+		errorLog:      errorLog,
+		infoLog:       infoLog,
+		snippets:      &models.SnippetModel{DB: db},
+		templateCache: templateCache,
 
 		allowFileBrowsing: allowFileBrowsing,
 	}
