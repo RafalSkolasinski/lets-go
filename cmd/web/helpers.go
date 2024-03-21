@@ -5,7 +5,16 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
+
+// Add a newTemplateData() helper witch returns a pointer to templateData.
+// Note that we do not use http.Request now but we will later.
+func (app *application) newTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
+	}
+}
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
