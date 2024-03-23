@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
 	"runtime/debug"
 	"time"
 )
@@ -55,4 +56,34 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 	// we are safe to ho ahead with writing to the http.ResponseWriter
 	w.WriteHeader(status)
 	buf.WriteTo(w)
+}
+
+func (app *application) fileServer() http.Handler {
+	if *app.allowFileBrowsing {
+		app.infoLog.Println("FileServer allows for file browsing!")
+		return http.FileServer(http.Dir("./ui/static/"))
+	} else {
+		return http.FileServer(neuteredFileSystem{http.Dir("./ui/static/")})
+	}
+}
+
+type neuteredFileSystem struct {
+	httpDir http.FileSystem
+}
+
+func (fs neuteredFileSystem) Open(name string) (http.File, error) {
+	f, err := fs.httpDir.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	stat, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	if stat.IsDir() {
+		return nil, os.ErrNotExist
+	}
+
+	return f, nil
 }

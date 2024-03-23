@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/julienschmidt/httprouter"
 	"letsgo.skolasinski.me/internal/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		app.notFound(w) // Use the notFound() helper
-		return
-	}
+	// Because httprouter matches the "/" path exactly, we can now remove
+	// he manual check of the r.URL.Path != "/" from this handler.
 
 	snippets, err := app.snippets.Latest()
 	if err != nil {
@@ -21,24 +20,25 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call our new helper method to create templateData containing current year.
 	data := app.newTemplateData(r)
 	data.Snippets = snippets
 
-	// Use the new render helper.
 	app.render(w, http.StatusOK, "home.tmpl.html", data)
 
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	// When httprouter is passing a request, the values of any named parameters
+	// will be stored in the request context. More on request contexts later.
+	params := httprouter.ParamsFromContext(r.Context())
+
+	// We can then use the ByName() method to get the value of the "id"
+	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
 	}
 
-	// Use the SnippetModel object's Get method to retrieve the data for a specific
-	// record based on its ID. If no match return a 404 Not Found response.
 	snippet, err := app.snippets.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
@@ -49,32 +49,31 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call our new helper method to create templateData containing current year.
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
 
-	// Use the new render helper.
 	app.render(w, http.StatusOK, "view.tmpl.html", data)
 
 }
 
+// Add a new snippetCreate handler, which now is just a placeholder
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Set("Allow", http.MethodPost)
-		app.clientError(w, http.StatusMethodNotAllowed)
-		return
-	}
+	w.Write([]byte("Display the form for creating a new snippet..."))
+}
 
-	// Create some variables holding dummy data. We will remove these later on.
+// Rename this handler to snippetCreatePost
+func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+	// We can also now remove test if the r.Method == "POST"
+
 	title := "An old silent pond"
 	content := "An old silent pond...\nA frog jumps into the pond,\nsplash! Silence again.\n\n- Matsuo Bashō"
 	expires := 7
 
-	// Pass the data to the SnippetModel.Insert() method, receiving the ID of new record
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.serverError(w, err)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
+	// Update the redirect path to use the new clean URL format
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
