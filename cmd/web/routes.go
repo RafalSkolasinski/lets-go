@@ -23,9 +23,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/snippet/view", app.snippetView)
 	mux.HandleFunc("/snippet/create", app.snippetCreate)
 
-	// Pass the servemux as the 'next' parameter to the secureHeaders middleware.
-	// As this is a regular function this is enough.
-	return app.logRequest(secureHeaders(mux))
+	// Wrap the existing chain with the recoverPanic middleware.
+	return app.recoverPanic(app.logRequest(secureHeaders(mux)))
 }
 
 type neuteredFileSystem struct {
