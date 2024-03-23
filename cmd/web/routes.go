@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 	"os"
+
+	"github.com/justinas/alice"
 )
 
 // Update the signature for the routes() method so that it returns a
@@ -23,8 +25,11 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/snippet/view", app.snippetView)
 	mux.HandleFunc("/snippet/create", app.snippetCreate)
 
-	// Wrap the existing chain with the recoverPanic middleware.
-	return app.recoverPanic(app.logRequest(secureHeaders(mux)))
+	// Create a middleware chain containing our 'standard' middleware.
+	chain := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
+	// Return the 'standard' middleware chain followed by the servemux
+	return chain.Then(mux)
 }
 
 type neuteredFileSystem struct {
