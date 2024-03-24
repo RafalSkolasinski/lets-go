@@ -11,14 +11,16 @@ import (
 	"letsgo.skolasinski.me/internal/validator"
 )
 
-// Remove the explicit FieldErrors struct field and instead embed the Validator
-// type. Embedding this means that our snippetCreateForm "inherits" all the
-// fields and methods of our Validator type (including the FieldErrors field).
+// Update our snippetCreateForm struct to include struct tags which tell the
+// decoder how to map HTML form values into the different struct fields. So, for
+// example, here we're telling the decoder to store the value from the HTML form
+// input with the name "title" in the Title field. The struct tag `form:"-"`
+// tells the decoder to completely ignore a field during decoding.
 type snippetCreateForm struct {
-	Title   string
-	Content string
-	Expires int
-	validator.Validator
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
 }
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -89,24 +91,15 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// We use r.PostForm.Get() to retrieve the title and content
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
+	// Declare a new empty instance of the sippetCreateForm struct
+	var form snippetCreateForm
 
-	// The r.PostForm.Get() will always return form data as a *string*.
-	// We need to convert to number on our own
-	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	// Call the Decode() method of the form decoder, passing in the current
+	// request and *a pointer* to our snippetCreateForm struct.
+	err = app.formDecoder.Decode(&form, r.PostForm)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
-	}
-
-	// Create an instance of the snippetCreateForm
-	form := snippetCreateForm{
-		Title:   title,
-		Content: content,
-		Expires: expires,
-		// Remove the FieldErrors assignment from here.
 	}
 
 	// Because Validator type is embedded by the snippetCreateForm struct,
@@ -125,7 +118,7 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id, err := app.snippets.Insert(title, content, expires)
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, err)
 	}
