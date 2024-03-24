@@ -58,16 +58,32 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 
 // Add a new snippetCreate handler, which now is just a placeholder
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display the form for creating a new snippet..."))
+	data := app.newTemplateData(r)
+	app.render(w, http.StatusOK, "create.tmpl.html", data)
 }
 
 // Rename this handler to snippetCreatePost
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	// We can also now remove test if the r.Method == "POST"
+	// First we call r.ParseForm() which adds any data in POST request bodies
+	// to the r.PostForm map. This also works in the same way to PUT and PATCH
+	// requests. If there are any errors, we use our app.ClientError() helper.
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
-	title := "An old silent pond"
-	content := "An old silent pond...\nA frog jumps into the pond,\nsplash! Silence again.\n\n- Matsuo Bashō"
-	expires := 7
+	// We use r.PostForm.Get() to retrieve the title and content
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+
+	// The r.PostForm.Get() will always return form data as a *string*.
+	// We need to convert to number on our own
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
