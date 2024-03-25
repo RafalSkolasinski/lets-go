@@ -15,10 +15,13 @@ console:
 
 # Executing snippets
 
-schemas: snippets-table dummy-records
+schemas: snippets-table session-table dummy-records
 
 snippets-table:
 	docker compose exec mysql sh -c 'mysql -usnippetbox -psnippetbox snippetbox < /schemas/snippets-table.sql'
+
+session-table:
+	docker compose exec mysql sh -c 'mysql -usnippetbox -psnippetbox snippetbox < /schemas/session-table.sql'
 
 dummy-records:
 	docker compose exec mysql sh -c 'mysql -usnippetbox -psnippetbox snippetbox < /schemas/dummy-records.sql'

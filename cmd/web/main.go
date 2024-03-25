@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"os"
 	"text/template"
+	"time"
 
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	"github.com/spf13/pflag"
 
@@ -17,7 +20,7 @@ import (
 
 const DEFAULT_DSN = "snippetbox:snippetbox@tcp(localhost:3306)/snippetbox?parseTime=true"
 
-// Add a formDecoder field to hold a pointer to a form.Decoder instance.
+// Add a new sessionManager field to the application struct.
 type application struct {
 	errorLog          *log.Logger
 	infoLog           *log.Logger
@@ -25,6 +28,7 @@ type application struct {
 	snippets          *models.SnippetModel
 	templateCache     map[string]*template.Template
 	formDecoder       *form.Decoder
+	sessionManager    *scs.SessionManager
 }
 
 func main() {
@@ -58,13 +62,20 @@ func main() {
 	// Initialize a decoder instance....
 	formDecoder := form.NewDecoder()
 
+	// Use the scs.New() function to initialize a new session manager. Then
+	// we configure it to use our MySQL database.
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	// And add it to the application dependencies.
 	app := &application{
-		errorLog:      errorLog,
-		infoLog:       infoLog,
-		snippets:      &models.SnippetModel{DB: db},
-		templateCache: templateCache,
-		formDecoder:   formDecoder,
+		errorLog:       errorLog,
+		infoLog:        infoLog,
+		snippets:       &models.SnippetModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 
 		allowFileBrowsing: allowFileBrowsing,
 	}
