@@ -80,37 +80,20 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	app.render(w, http.StatusOK, "create.tmpl.html", data)
 }
 
-// Rename this handler to snippetCreatePost
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	// First we call r.ParseForm() which adds any data in POST request bodies
-	// to the r.PostForm map. This also works in the same way to PUT and PATCH
-	// requests. If there are any errors, we use our app.ClientError() helper.
-	err := r.ParseForm()
-	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
-	// Declare a new empty instance of the sippetCreateForm struct
 	var form snippetCreateForm
 
-	// Call the Decode() method of the form decoder, passing in the current
-	// request and *a pointer* to our snippetCreateForm struct.
-	err = app.formDecoder.Decode(&form, r.PostForm)
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	// Because Validator type is embedded by the snippetCreateForm struct,
-	// we can call CheckField() directly on the 'form' to execute validations.
 	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
 	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be more than 100 characters long")
 	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
 	form.CheckField(validator.PermittedInt(form.Expires, 1, 7, 365), "expires", "This field must equal 1, 7, or 365.")
 
-	// Use the Valid() method to see if any of the checks failed.
-	// If they did, then re-render template like before.
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
@@ -123,6 +106,5 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		app.serverError(w, err)
 	}
 
-	// Update the redirect path to use the new clean URL format
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }

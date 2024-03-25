@@ -2,11 +2,14 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-playground/form/v4"
 )
 
 // Add a newTemplateData() helper witch returns a pointer to templateData.
@@ -86,4 +89,31 @@ func (fs neuteredFileSystem) Open(name string) (http.File, error) {
 	}
 
 	return f, nil
+}
+
+// Create a new decodePostForm() helper method. The second parameter,
+// dst, is the the destination we want to decode form into.
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+	// call ParseForm on the request
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+
+	// Call Decode() on our decoder instance, passing the target destination.
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+		// If we try to use invalid destination, the Decode() method will
+		// return an error with the type *form.InvalidDecoderError.
+		var InvalidDecoderError *form.InvalidDecoderError
+
+		if errors.As(err, &InvalidDecoderError) {
+			panic(err)
+		}
+
+		// For regular errors
+		return err
+	}
+
+	return nil
 }
