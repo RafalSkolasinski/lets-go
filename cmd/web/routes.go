@@ -23,8 +23,8 @@ func (app *application) routes() http.Handler {
 	fileServer := app.fileServer()
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
-	// New dynamic middleware chain
-	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	// Use the nosurf middleware on all our 'dynamic' routes.
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
 
 	// Update these routes to use the dynamic middleware chain
 	// Note tat ThenFunc() returns an http.Handler rather than http.HandlerFunc.

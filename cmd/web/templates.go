@@ -17,6 +17,9 @@ type templateData struct {
 
 	// Add an IsAuthenticated field to the templateData struct.
 	IsAuthenticated bool
+
+	// Add a CSRFToken field.
+	CSRFToken string
 }
 
 // Create a humanDate function which returns a nicely formatted string

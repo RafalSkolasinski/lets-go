@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-playground/form/v4"
+	"github.com/justinas/nosurf"
 )
 
 // Add a newTemplateData() helper witch returns a pointer to templateData.
@@ -20,6 +21,9 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
 		// Add the authentication status to the template data.
 		IsAuthenticated: app.isAuthenticated(r),
+
+		// Add the CSRF token.
+		CSRFToken: nosurf.Token(r),
 	}
 }
 
