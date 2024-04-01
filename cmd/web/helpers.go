@@ -18,6 +18,8 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 	return &templateData{
 		CurrentYear: time.Now().Year(),
 		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+		// Add the authentication status to the template data.
+		IsAuthenticated: app.isAuthenticated(r),
 	}
 }
 
@@ -69,6 +71,11 @@ func (app *application) fileServer() http.Handler {
 	} else {
 		return http.FileServer(neuteredFileSystem{http.Dir("./ui/static/")})
 	}
+}
+
+// Return true if the current request is from an authenticated user.
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), authenticatedUserID)
 }
 
 type neuteredFileSystem struct {
