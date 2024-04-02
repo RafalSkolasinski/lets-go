@@ -79,7 +79,11 @@ func (app *application) fileServer() http.Handler {
 
 // Return true if the current request is from an authenticated user.
 func (app *application) isAuthenticated(r *http.Request) bool {
-	return app.sessionManager.Exists(r.Context(), authenticatedUserID)
+	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+	if !ok {
+		return false
+	}
+	return isAuthenticated
 }
 
 type neuteredFileSystem struct {
