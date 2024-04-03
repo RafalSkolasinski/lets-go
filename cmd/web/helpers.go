@@ -69,11 +69,11 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 }
 
 func (app *application) fileServer() http.Handler {
-	if *app.allowFileBrowsing {
+	if app.allowFileBrowsing == nil || !(*app.allowFileBrowsing) {
+		return http.FileServer(neuteredFileSystem{http.Dir("./ui/static/")})
+	} else {
 		app.infoLog.Println("FileServer allows for file browsing!")
 		return http.FileServer(http.Dir("./ui/static/"))
-	} else {
-		return http.FileServer(neuteredFileSystem{http.Dir("./ui/static/")})
 	}
 }
 
