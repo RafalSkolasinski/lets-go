@@ -23,6 +23,8 @@ func (app *application) routes() http.Handler {
 	fileServer := app.fileServer()
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
+	router.HandlerFunc(http.MethodGet, "/ping", ping)
+
 	// Use the nosurf middleware on all our 'dynamic' routes.
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 

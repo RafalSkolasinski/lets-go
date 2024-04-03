@@ -256,3 +256,7 @@ func (app *application) userLogutPost(w http.ResponseWriter, r *http.Request) {
 	// Redirect user to the home page
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func ping(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK"))
+}
