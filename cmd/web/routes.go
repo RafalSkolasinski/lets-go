@@ -32,6 +32,7 @@ func (app *application) routes() http.Handler {
 	// Update these routes to use the dynamic middleware chain
 	// Note tat ThenFunc() returns an http.Handler rather than http.HandlerFunc.
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
+	router.Handler(http.MethodGet, "/about", dynamic.ThenFunc(app.about))
 	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.snippetView))
 
 	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.userSignup))
