@@ -25,8 +25,8 @@ type application struct {
 	errorLog          *log.Logger
 	infoLog           *log.Logger
 	allowFileBrowsing *bool
-	snippets          *models.SnippetModel
-	users             *models.UserModel
+	snippets          models.SnippetModelInterface
+	users             models.UserModelInterface
 	templateCache     map[string]*template.Template
 	formDecoder       *form.Decoder
 	sessionManager    *scs.SessionManager

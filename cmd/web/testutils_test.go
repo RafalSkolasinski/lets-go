@@ -7,14 +7,43 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"os"
 	"testing"
+	"time"
+
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
+	"letsgo.skolasinski.me/internal/models/mocks"
 )
 
 // Create a newTestApplication helper which returns instance of our application
 func newTestApplication(t *testing.T) *application {
+	// Create template cache
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create form decoder
+	formDecoder := form.NewDecoder()
+
+	// Add session manager instance: same session as production
+	// except we do not use datastore now!
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
+	allowFileBrowsing := false
 	return &application{
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog:  log.New(io.Discard, "", 0),
+		errorLog:       log.New(os.Stderr, "", 0),
+		infoLog:        log.New(os.Stderr, "", 0),
+		snippets:       &mocks.SnippetModel{},
+		users:          &mocks.UserModel{},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
+
+		allowFileBrowsing: &allowFileBrowsing,
 	}
 }
 
