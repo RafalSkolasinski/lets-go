@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-playground/form/v4"
 	"github.com/justinas/nosurf"
+	"letsgo.skolasinski.me/ui"
 )
 
 // Add a newTemplateData() helper witch returns a pointer to templateData.
@@ -69,11 +70,13 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 }
 
 func (app *application) fileServer() http.Handler {
+	dir := http.FS(ui.Files)
+
 	if app.allowFileBrowsing == nil || !(*app.allowFileBrowsing) {
-		return http.FileServer(neuteredFileSystem{http.Dir("./ui/static/")})
+		return http.FileServer(neuteredFileSystem{dir})
 	} else {
 		app.infoLog.Println("FileServer allows for file browsing!")
-		return http.FileServer(http.Dir("./ui/static/"))
+		return http.FileServer(dir)
 	}
 }
 

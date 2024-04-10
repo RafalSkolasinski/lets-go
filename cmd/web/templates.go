@@ -1,11 +1,13 @@
 package main
 
 import (
+	"io/fs"
 	"path/filepath"
 	"text/template"
 	"time"
 
 	"letsgo.skolasinski.me/internal/models"
+	"letsgo.skolasinski.me/ui"
 )
 
 type templateData struct {
@@ -46,7 +48,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	// match the pattern "./ui/html/pages/*.tmpl.html". This will essentially give
 	// us a slice of all the filepaths for our application 'page' templates
 	// like: [ui/html/pages/home.tmpl.html ui/html/pages/view.tmpl.html].
-	pages, err := filepath.Glob("./ui/html/pages/*.tmpl.html")
+	pages, err := fs.Glob(ui.Files, "html/pages/*.tmpl.html")
 	if err != nil {
 		return nil, err
 	}
@@ -56,23 +58,23 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// Extract the file name (like home.tmpl.html) from full filepath
 		name := filepath.Base(page)
 
+		// Create a slice containing the filepath patterns for the templates we
+		// want to parse.
+		patterns := []string{
+			"html/base.tmpl.html",
+			"html/partials/*.tmpl.html",
+			page,
+		}
+
 		// The template.FuncMap must be registered with the template set before you
 		// call the ParseFiles() method. This means we have to use template.New() to
 		// create an empty template set, use the Funcs() method to register the
 		// template.FuncMap, and then parse the file as normal.
-		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl.html")
-		if err != nil {
-			return nil, err
-		}
+		ts := template.New(name).Funcs(functions)
 
-		// Call ParseGlob() *on this template set* to add any partials.
-		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl.html")
-		if err != nil {
-			return nil, err
-		}
-
-		// Call ParseGlob() *on this template set* to parse the page..
-		ts, err = ts.ParseFiles(page)
+		// Use ParseFS() instead of ParseFiles() to parse the template files
+		// from the ui.Files embedded filesystem.
+		ts, err := ts.ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
