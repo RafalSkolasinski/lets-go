@@ -1,5 +1,7 @@
 # Snippetbox
 
+Finished on 11 April 2024.
+
 
 ## Issues
 

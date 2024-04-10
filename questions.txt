@@ -1,2 +1,0 @@
-- why actually there is dynamic middleware -> why cannot they just wrap router.
-- embedded structs: creation syntax `&testServer{ts}`
