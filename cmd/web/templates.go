@@ -3,8 +3,8 @@ package main
 import (
 	"io/fs"
 
+	"html/template"
 	"path/filepath"
-	"text/template"
 	"time"
 
 	"letsgo.skolasinski.me/internal/models"
